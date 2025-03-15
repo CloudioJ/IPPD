@@ -8,9 +8,9 @@ O projeto visa criar um programa multithreading para processar textos em paralel
 
  ### Features
 
-- [] Leitura e escrita em CSV;
-- [] Remoção de pontuação e stopwords;
-- [] Tokenização;
+- [x] Leitura e escrita em CSV;
+- [x] Remoção de pontuação e stopwords;
+- [x] Tokenização;
 - [] Contagem de frequência de palavras;
 - [] Representação de dados.
 
