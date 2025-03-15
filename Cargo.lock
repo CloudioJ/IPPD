@@ -7,9 +7,6 @@ name = "IPPD"
 version = "0.1.0"
 dependencies = [
  "csv",
- "nlp",
- "nltk",
- "stop-words",
 ]
 
 [[package]]
@@ -34,12 +31,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.4.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4a9b56eb56058f43dc66e58f40a214b2ccbc9f3df51861b63d51dec7b65bc3f"
-
-[[package]]
 name = "itoa"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -50,21 +41,6 @@ name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
-
-[[package]]
-name = "nlp"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3144e47544b631d05c0c936173c865a538b51510657b76b61e5b0ec131a4d984"
-dependencies = [
- "itertools",
-]
-
-[[package]]
-name = "nltk"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c6b354ebac1a75beca2904f0ddc5fe2d0d73b77c7e7e94d37562b3d1ade219"
 
 [[package]]
 name = "proc-macro2"
@@ -108,27 +84,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "serde_json"
-version = "1.0.140"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
-dependencies = [
- "itoa",
- "memchr",
- "ryu",
- "serde",
-]
-
-[[package]]
-name = "stop-words"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c6a86be9f7fa4559b7339669e72026eb437f5e9c5a85c207fe1033079033a17"
-dependencies = [
- "serde_json",
 ]
 
 [[package]]
