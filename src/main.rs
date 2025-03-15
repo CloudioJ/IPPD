@@ -32,12 +32,12 @@ fn most_frequent_strings(strings: Vec<&str>) -> Vec<(&str, usize)> {
         let mut rdr = Reader::from_reader(file);
     
         // Cria writers para cada categoria
-        let mut wrt_toxic = Writer::from_path("toxic.csv")?;
-        let mut wrt_severe_toxic = Writer::from_path("severe_toxic.csv")?;
-        let mut wrt_obscene = Writer::from_path("obscene.csv")?;
-        let mut wrt_threat = Writer::from_path("threat.csv")?;
-        let mut wrt_insult = Writer::from_path("insult.csv")?;
-        let mut wrt_identity_hate = Writer::from_path("identity_hate.csv")?;
+        let mut wrt_toxic = Writer::from_path("csv/toxic.csv")?;
+        let mut wrt_severe_toxic = Writer::from_path("csv/severe_toxic.csv")?;
+        let mut wrt_obscene = Writer::from_path("csv/obscene.csv")?;
+        let mut wrt_threat = Writer::from_path("csv/threat.csv")?;
+        let mut wrt_insult = Writer::from_path("csv/insult.csv")?;
+        let mut wrt_identity_hate = Writer::from_path("csv/identity_hate.csv")?;
     
         // Processa o CSV de entrada
         for result in rdr.records() {
