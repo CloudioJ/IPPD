@@ -1,13 +1,14 @@
 #  Processamento de Textos em Paralelo
 
- O projeto visa criar um programa multithreading para processar textos em paralelo. Para isso, são utilizadas técnicas básicas de Processamento de Linguagem Natural (PLN) em C++ e a paralelização da execução com OpenMP, fazendo uso de memória compartilhada.
+ O projeto visa criar um programa multithreading para processar textos em paralelo, utilizando técnicas básicas de Processamento de Linguagem Natural (PLN) em C++ e paralelizando a execução com OpenMP. O programa lê um dataset CSV contendo e-mails que podem ser classificados em até seis categorias. Para cada classificação, o código separa os emails em novos arquivos CSV e conta a frequência de palavras de cada um. 
 
  ### Features
 
+- [] Leitura e escrita em CSV;
 - [] Remoção de pontuação e stopwords;
 - [] Tokenização;
-- [] 
-- [] 
+- [] Contagem de frequência de palavras;
+- [] Representação de dados.
 
  ### Autores
 
