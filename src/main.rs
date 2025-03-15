@@ -1,7 +1,9 @@
 use std::error::Error;
 use std::fs::File;
+use std::fs::OpenOptions;
 use csv::Reader;
 use csv::Writer;
+use csv::WriterBuilder;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
@@ -24,53 +26,48 @@ fn most_frequent_strings(strings: Vec<&str>, limit: usize) -> Vec<(&str, usize)>
 }
 
 
-/*  Função para dividir as mensagens em arquvos CSV de acordo 
-    com as categrorias do cabeçalho do arquivo de entrada. */
+/* Função para criar e escrever em um arquivo CSV. */
 
-    fn split_csv(input_file: &str) -> Result<(), Box<dyn Error>> {
-        // Abre csv completo
-        let file = File::open(input_file)?;
-        let mut rdr = Reader::from_reader(file);
-    
-        // Cria writers para cada categoria
-        let mut wrt_toxic = Writer::from_path("csv/toxic.csv")?;
-        let mut wrt_severe_toxic = Writer::from_path("csv/severe_toxic.csv")?;
-        let mut wrt_obscene = Writer::from_path("csv/obscene.csv")?;
-        let mut wrt_threat = Writer::from_path("csv/threat.csv")?;
-        let mut wrt_insult = Writer::from_path("csv/insult.csv")?;
-        let mut wrt_identity_hate = Writer::from_path("csv/identity_hate.csv")?;
-    
-        // Processa o CSV de entrada
-        for result in rdr.records() {
-            let record = result?;
+    fn append_csv(file_path:&str, data: &str) -> Result<(), Box<dyn Error>> {
+        let file = OpenOptions::new()
+            .append(true)
+            .open(file_path)?;
+
+        let mut wrt = WriterBuilder::new().has_headers(false).from_writer(file);
+
+        wrt.write_record(data.split_whitespace())?;
+        wrt.flush();
+
+        Ok(())
+    }
+
+/*  Função para dividir as mensagens em arquivos CSV de acordo 
+    com as categrorias do cabeçalho do dataset de entrada. */
+
+    fn split_csv(input_record: csv::StringRecord, input_text: String) -> Result<(), Box<dyn Error>> {
+        
+        // Processa a string senteces
+        
+        let record = input_record;
             
-            let text = &record[1];
-            let toxic: u8 = record[2].parse()?;
-            let severe_toxic: u8 = record[3].parse()?;
-            let obscene: u8 = record[4].parse()?;
-            let threat: u8 = record[5].parse()?;
-            let insult: u8 = record[6].parse()?;
-            let identity_hate: u8 = record[7].parse()?;
+        let text = input_text;
+        let toxic: u8 = record[2].parse()?;
+        let severe_toxic: u8 = record[3].parse()?;
+        let obscene: u8 = record[4].parse()?;
+        let threat: u8 = record[5].parse()?;
+        let insult: u8 = record[6].parse()?;
+        let identity_hate: u8 = record[7].parse()?;
     
-            // Usando match para decidir em qual arquivo a mensagem será colocada
-            match (toxic, severe_toxic, obscene, threat, insult, identity_hate) {
-                (1, _, _, _, _, _) => wrt_toxic.write_record(&[text])?,
-                (_, 1, _, _, _, _) => wrt_severe_toxic.write_record(&[text])?,
-                (_, _, 1, _, _, _) => wrt_obscene.write_record(&[text])?,
-                (_, _, _, 1, _, _) => wrt_threat.write_record(&[text])?,
-                (_, _, _, _, 1, _) => wrt_insult.write_record(&[text])?,
-                (_, _, _, _, _, 1) => wrt_identity_hate.write_record(&[text])?,
-                _ => {} // Se não se encaixar em nenhuma categoria, não faz nada
-            }
+        // Usando match para decidir em qual arquivo a mensagem será colocada
+        match (toxic, severe_toxic, obscene, threat, insult, identity_hate) {
+            (1, _, _, _, _, _) => append_csv("csv/toxic.csv", &text)?,
+            (_, 1, _, _, _, _) => append_csv("csv/severe_toxic.csv", &text)?,
+            (_, _, 1, _, _, _) => append_csv("csv/obscene.csv", &text)?,
+            (_, _, _, 1, _, _) => append_csv("csv/threat.csv", &text)?,
+            (_, _, _, _, 1, _) => append_csv("csv/insult.csv", &text)?,
+            (_, _, _, _, _, 1) => append_csv("csv/identity_hate.csv", &text)?,
+            _ => {} // Se não se encaixar em nenhuma categoria, não faz nada
         }
-    
-        // Finalizando a gravação
-        wrt_toxic.flush()?;
-        wrt_severe_toxic.flush()?;
-        wrt_obscene.flush()?;
-        wrt_threat.flush()?;
-        wrt_insult.flush()?;
-        wrt_identity_hate.flush()?;
     
         println!("Mensagens separadas com sucesso em arquivos por categoria.");
         Ok(())
@@ -111,6 +108,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .filter(|word: &String| word.len() > 3 && !stopwords.contains(word.as_str())) // Remove stopwords
                 .collect();
 
+            split_csv(record, sentences.join(" "))?;
+
             for word in sentences {
                 word_list.push(word);
                 // println!("{:?}", word);
@@ -127,7 +126,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("{:?}: {:?}", word, count);
     }
     
-    split_csv(filename)?;
 
     Ok(())
 }
