@@ -39,20 +39,11 @@ fn most_frequent_strings(strings: Vec<&str>) -> Vec<(&str, usize)> {
         let mut wrt_insult = Writer::from_path("insult.csv")?;
         let mut wrt_identity_hate = Writer::from_path("identity_hate.csv")?;
     
-        // Escreve os cabeçalhos nos arquivos
-        wrt_toxic.write_record(&["id", "comment_text"])?;
-        wrt_severe_toxic.write_record(&["id", "comment_text"])?;
-        wrt_obscene.write_record(&["id", "comment_text"])?;
-        wrt_threat.write_record(&["id", "comment_text"])?;
-        wrt_insult.write_record(&["id", "comment_text"])?;
-        wrt_identity_hate.write_record(&["id", "comment_text"])?;
-    
         // Processa o CSV de entrada
         for result in rdr.records() {
             let record = result?;
             
-            let id = &record[0];
-            let comment_text = &record[1];
+            let text = &record[1];
             let toxic: u8 = record[2].parse()?;
             let severe_toxic: u8 = record[3].parse()?;
             let obscene: u8 = record[4].parse()?;
@@ -62,12 +53,12 @@ fn most_frequent_strings(strings: Vec<&str>) -> Vec<(&str, usize)> {
     
             // Usando match para decidir em qual arquivo a mensagem será colocada
             match (toxic, severe_toxic, obscene, threat, insult, identity_hate) {
-                (1, _, _, _, _, _) => wrt_toxic.write_record(&[id, comment_text])?,
-                (_, 1, _, _, _, _) => wrt_severe_toxic.write_record(&[id, comment_text])?,
-                (_, _, 1, _, _, _) => wrt_obscene.write_record(&[id, comment_text])?,
-                (_, _, _, 1, _, _) => wrt_threat.write_record(&[id, comment_text])?,
-                (_, _, _, _, 1, _) => wrt_insult.write_record(&[id, comment_text])?,
-                (_, _, _, _, _, 1) => wrt_identity_hate.write_record(&[id, comment_text])?,
+                (1, _, _, _, _, _) => wrt_toxic.write_record(&[text])?,
+                (_, 1, _, _, _, _) => wrt_severe_toxic.write_record(&[text])?,
+                (_, _, 1, _, _, _) => wrt_obscene.write_record(&[text])?,
+                (_, _, _, 1, _, _) => wrt_threat.write_record(&[text])?,
+                (_, _, _, _, 1, _) => wrt_insult.write_record(&[text])?,
+                (_, _, _, _, _, 1) => wrt_identity_hate.write_record(&[text])?,
                 _ => {} // Se não se encaixar em nenhuma categoria, não faz nada
             }
         }
