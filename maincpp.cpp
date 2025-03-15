@@ -6,33 +6,55 @@
 #include <regex>
 #include <algorithm>
 
+using namespace std;
+
 // Lista de stopwords (pode ser expandida)
-const std::unordered_set<std::string> stopwords = {"a", "o", "e", "de", "do", "da", "em", "um", "para", "com", "não", "é", "que", "se", "por", "as", "os", "como", "mas", "ou"};
+unordered_set<string> stopwords = {
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and",
+    "any", "are", "aren't", "as", "at", "be", "because", "been", "before", "being",
+    "below", "between", "both", "but", "by", "can't", "cannot", "could", "couldn't",
+    "did", "didn't", "do", "does", "doesn't", "doing", "don't", "down", "during",
+    "each", "few", "for", "from", "further", "had", "hadn't", "has", "hasn't",
+    "have", "haven't", "having", "he", "he'd", "he'll", "he's", "her", "here",
+    "here's", "hers", "herself", "him", "himself", "his", "how", "how's", "i",
+    "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't", "it", "it's",
+    "its", "itself", "let's", "me", "more", "most", "mustn't", "my", "myself", "no",
+    "nor", "not", "of", "off", "on", "once", "only", "or", "other", "ought", "our",
+    "ours", "ourselves", "out", "over", "own", "same", "shan't", "she", "she'd",
+    "she'll", "she's", "should", "shouldn't", "so", "some", "such", "than", "that",
+    "that's", "the", "their", "theirs", "them", "themselves", "then", "there",
+    "there's", "these", "they", "they'd", "they'll", "they're", "they've", "this",
+    "those", "through", "to", "too", "under", "until", "up", "very", "was", "wasn't",
+    "we", "we'd", "we'll", "we're", "we've", "were", "weren't", "what", "what's",
+    "when", "when's", "where", "where's", "which", "while", "who", "who's", "whom",
+    "why", "why's", "with", "won't", "would", "wouldn't", "you", "you'd", "you'll",
+    "you're", "you've", "your", "yours", "yourself", "yourselves"
+};
 
 // Função para remover pontuação usando regex
-std::string removePunctuation(const std::string& text) {
-    return std::regex_replace(text, std::regex(R"([^\w\s])"), "");
+string removePunctuation(const string& text) {
+    return regex_replace(text, regex(R"([^\w\s])"), "");
 }
 
 // Tokenização simples (divide palavras por espaço)
-std::vector<std::string> tokenize(const std::string& text) {
-    std::vector<std::string> tokens;
-    std::stringstream ss(text);
-    std::string word;
+vector<string> tokenize(const string& text) {
+    vector<string> tokens;
+    stringstream ss(text);
+    string word;
     
     while (ss >> word) {
         // Converte para minúsculas
-        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+        transform(word.begin(), word.end(), word.begin(), ::tolower);
         tokens.push_back(word);
     }
     return tokens;
 }
 
 // Remove stopwords da lista de tokens
-std::vector<std::string> removeStopWords(const std::vector<std::string>& tokens) {
-    std::vector<std::string> filteredTokens;
+vector<string> removeStopWords(const vector<string>& tokens) {
+    vector<string> filteredTokens;
     
-    for (const std::string& word : tokens) {
+    for (const string& word : tokens) {
         if (stopwords.find(word) == stopwords.end()) { // Se não for stopword, mantém
             filteredTokens.push_back(word);
         }
@@ -41,31 +63,31 @@ std::vector<std::string> removeStopWords(const std::vector<std::string>& tokens)
 }
 
 int main() {
-    std::ifstream file("F:/Code/IPPD_PLN/IPPD/csv/dataset.csv");
+    ifstream file("csv\\dataset.csv");
     if (!file) {
-        std::cerr << "Erro ao abrir o arquivo!" << std::endl;
+        cerr << "Erro ao abrir o arquivo!" << endl;
         return 1;
     }
 
-    std::string line, text;
-    while (std::getline(file, line)) {
+    string line, text;
+    while (getline(file, line)) {
         text += " " + line;
     }
     file.close();
 
     // Passo 1: Remover pontuação
-    std::string cleanText = removePunctuation(text);
+    string cleanText = removePunctuation(text);
 
     // Passo 2: Tokenizar
-    std::vector<std::string> tokens = tokenize(cleanText);
+    vector<string> tokens = tokenize(cleanText);
 
     // Passo 3: Remover stopwords
-    std::vector<std::string> filteredTokens = removeStopWords(tokens);
+    vector<string> filteredTokens = removeStopWords(tokens);
 
     // Exibir resultado
-    std::cout << "Palavras após processamento:\n";
-    for (const std::string& word : filteredTokens) {
-        std::cout << word << " ";
+    cout << "Palavras após processamento:\n";
+    for (const string& word : filteredTokens) {
+        cout << word << " ";
     }
 
     return 0;
