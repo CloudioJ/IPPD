@@ -2,10 +2,13 @@ use std::error::Error;
 use std::fs::File;
 use std::fs::OpenOptions;
 use csv::Reader;
+use csv::StringRecord;
 use csv::Writer;
 use csv::WriterBuilder;
 use std::collections::HashSet;
 use std::collections::HashMap;
+use csv::ReaderBuilder;
+use serde::Deserialize;
 
 fn most_frequent_strings(strings: Vec<&str>, limit: usize) -> Vec<(&str, usize)> {
     let mut frequency_map: HashMap<&str, usize> = HashMap::new();
@@ -73,6 +76,23 @@ fn most_frequent_strings(strings: Vec<&str>, limit: usize) -> Vec<(&str, usize)>
         Ok(())
     }
 
+    fn frequency_counter() -> Result<(), Box<dyn Error>> {
+        let file: File = File::open("csv/toxic.csv")?;
+        let mut rdr: Reader<File> = Reader::from_reader(file);
+    
+        for result in rdr.records() {
+            // Each result is a Result<StringRecord>, so we need to handle it
+            let record = result?;
+    
+            // Now we can iterate through the fields of the record
+            for field in &record {
+                println!("{}", field);
+            }
+        }
+    
+        Ok(())
+    }
+
 fn main() -> Result<(), Box<dyn Error>> {
     let filename: &str = "csv/dataset.csv";
 
@@ -97,35 +117,36 @@ fn main() -> Result<(), Box<dyn Error>> {
         "it", "as", "at", "by", "be", "are", "was", "were", "from"
     ].iter().cloned().collect();
 
-    let mut word_list: Vec<String> = Vec::new();
+    // let mut word_list: Vec<String> = Vec::new();
 
-    for result in rdr.records() {
-        let record: csv::StringRecord = result?;
-        if let Some(field) = record.get(1) {
-            let field: String = field.replace(&['(', ')', ',', '\"', '.', ';', ':', '\'', '?', '!'][..], "");
-            let sentences: Vec<String> = field.split_whitespace()
-                .map(|x: &str| x.to_lowercase()) // Convert to lowercase
-                .filter(|word: &String| word.len() > 3 && !stopwords.contains(word.as_str())) // Remove stopwords
-                .collect();
+    // for result in rdr.records() {
+    //     let record: csv::StringRecord = result?;
+    //     if let Some(field) = record.get(1) {
+    //         let field: String = field.replace(&['(', ')', ',', '\"', '.', ';', ':', '\'', '?', '!'][..], "");
+    //         let sentences: Vec<String> = field.split_whitespace()
+    //             .map(|x: &str| x.to_lowercase()) // Convert to lowercase
+    //             .filter(|word: &String| word.len() > 3 && !stopwords.contains(word.as_str())) // Remove stopwords
+    //             .collect();
 
-            split_csv(record, sentences.join(" "))?;
+    //         split_csv(record, sentences.join(" "))?;
 
-            for word in sentences {
-                word_list.push(word);
-                // println!("{:?}", word);
-            }
-        }	
-    }
+    //         for word in sentences {
+    //             word_list.push(word);
+    //             // println!("{:?}", word);
+    //         }
+    //     }	
+    // }
 
-    let most_frequent_words: Vec<(&str, usize)> = most_frequent_strings(
-        word_list.iter().map(|x| x.as_str()).collect(),
-        30 // Get top 30 words
-    );
+    // let most_frequent_words: Vec<(&str, usize)> = most_frequent_strings(
+    //     word_list.iter().map(|x| x.as_str()).collect(),
+    //     30 // Get top 30 words
+    // );
 
-    for (word, count) in most_frequent_words {
-        println!("{:?}: {:?}", word, count);
-    }
+    // for (word, count) in most_frequent_words {
+    //     println!("{:?}: {:?}", word, count);
+    // }
     
+    let _ = frequency_counter();
 
     Ok(())
 }
