@@ -4,6 +4,9 @@ use csv::{Reader, WriterBuilder};
 use std::collections::{HashSet, HashMap};
 use std::time::Instant;
 use rayon::prelude::*;
+use regex::Regex;
+use std::io::BufReader;
+use std::sync::Mutex;
 
 fn most_frequent_strings(strings: Vec<&str>, limit: usize) -> Vec<(&str, usize)> {
     let mut frequency_map: HashMap<&str, usize> = HashMap::new();
@@ -42,27 +45,43 @@ fn split_csv(record: csv::StringRecord, text: String) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
-    fn frequency_counter() -> Result<(), Box<dyn Error>> {
-        let file: File = File::open("csv/toxic.csv")?;
-        let mut rdr: Reader<File> = Reader::from_reader(file);
-    
-        for result in rdr.records() {
-            // Each result is a Result<StringRecord>, so we need to handle it
-            let record = result?;
-    
-            // Now we can iterate through the fields of the record
-            for field in &record {
-                println!("{}", field);
+fn word_frequency_from_csv(file_path: &str) -> HashMap<String, usize> {
+    let file = File::open(file_path).expect("Failed to open file");
+    let mut rdr = Reader::from_reader(BufReader::new(file));
+
+    let word_count = Mutex::new(HashMap::new());
+    let re = Regex::new(r"\b\w+\b").unwrap();
+
+    rdr.records()
+        .par_bridge()
+        .for_each(|result| {
+            if let Ok(record) = result {
+                let text = record.iter().collect::<Vec<&str>>().join(" ");
+                let words = re.find_iter(&text).map(|m| m.as_str().to_lowercase());
+
+                let mut local_count = HashMap::new();
+                for word in words {
+                    *local_count.entry(word).or_insert(0) += 1;
+                }
+
+                let mut global_count = word_count.lock().unwrap();
+                for (word, count) in local_count {
+                    *global_count.entry(word).or_insert(0) += count;
+                }
             }
-        }
-    
-        Ok(())
-    }
+        });
+
+    word_count.into_inner().unwrap()
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     println!("Iniciando a execução do programa...");
     let filename = "csv/dataset.csv";
+    let files = [
+        "csv/toxic.csv", "csv/severe_toxic.csv", "csv/obscene.csv", 
+        "csv/threat.csv", "csv/insult.csv", "csv/identity_hate.csv"
+    ];
     
     let file = File::open(filename)?;
     let mut rdr = Reader::from_reader(file);
@@ -82,7 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "now", "d", "ll", "m", "o", "re", "ve", "y", "ain", "aren", "couldn", "didn", "doesn", "hadn", 
         "hasn", "haven", "isn", "ma", "mightn", "mustn", "needn", "shan", "shouldn", "wasn", "weren", 
         "won", "wouldn", "the", "is", "in", "and", "to", "of", "a", "with", "for", "on", "this", "that", 
-        "it", "as", "at", "by", "be", "are", "was", "were", "from"
+        "it", "as", "at", "by", "be", "are", "was", "were", "from", "dont", "have", "has", "had", "do", "thats",
     ].iter().cloned().collect();
     
     let word_list: Vec<String> = rdr.records().par_bridge().filter_map(|result| {
@@ -101,15 +120,40 @@ fn main() -> Result<(), Box<dyn Error>> {
         None
     }).flatten().collect();
     
-    let most_frequent_words = most_frequent_strings(
-        word_list.iter().map(|x| x.as_str()).collect(),
-        30
-    );
+    // let most_frequent_words = most_frequent_strings(
+    //     word_list.iter().map(|x| x.as_str()).collect(),
+    //     30
+    // );
     
-    for (word, count) in most_frequent_words {
-        println!("{:?}: {:?}", word, count);
+    // for (word, count) in most_frequent_words {
+    //     println!("{:?}: {:?}", word, count);
+    // }
+    
+
+    for file in files.iter() {
+        let word_freq = word_frequency_from_csv(file);
+        println!("Frequência em {}:", file);
+        
+        // Convert to vector and sort by frequency in descending order
+        let mut sorted_freq: Vec<(&String, &usize)> = word_freq.iter().collect();
+        sorted_freq.sort_by(|a, b| b.1.cmp(a.1)); // Sort by count (descending)
+    
+        // Print top 10 words
+        for (word, count) in sorted_freq.iter().take(10) {
+            println!("{}: {}", word, count);
+        }
+        println!();
     }
     
+    files.par_iter().for_each(|file| {
+        if let Err(err) = std::fs::remove_file(file) {
+            eprintln!("Erro ao excluir {}: {}", file, err);
+        } else {
+            println!("Arquivo {} excluído.", file);
+        }
+    });
+
     println!("Tempo de execução: {:?}", start.elapsed());
+
     Ok(())
 }

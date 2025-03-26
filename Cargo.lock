@@ -9,6 +9,7 @@ dependencies = [
  "csv",
  "punkt",
  "rayon",
+ "regex",
  "rust_readability",
  "serde",
  "stop-words 0.8.1",
