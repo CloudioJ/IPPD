@@ -42,6 +42,23 @@ fn split_csv(record: csv::StringRecord, text: String) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
+    fn frequency_counter() -> Result<(), Box<dyn Error>> {
+        let file: File = File::open("csv/toxic.csv")?;
+        let mut rdr: Reader<File> = Reader::from_reader(file);
+    
+        for result in rdr.records() {
+            // Each result is a Result<StringRecord>, so we need to handle it
+            let record = result?;
+    
+            // Now we can iterate through the fields of the record
+            for field in &record {
+                println!("{}", field);
+            }
+        }
+    
+        Ok(())
+    }
+
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     println!("Iniciando a execução do programa...");
