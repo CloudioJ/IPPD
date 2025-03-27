@@ -63,6 +63,12 @@ fn split_csv(record: csv::StringRecord, text: String) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
+/*  ==============================================  
+    word_frequency_from_csv
+    ----------------------------------------------
+    Entrada: caminho do csv de uma categoria;
+    Saída: HashMap com "palavra: frequência".
+    ==============================================  */
 fn word_frequency_from_txt(file_path: &str) -> HashMap<String, usize> {
     let file = File::open(file_path).expect("Failed to open file");
     let reader = BufReader::new(file);
