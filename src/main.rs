@@ -1,36 +1,98 @@
 use std::error::Error;
 use std::fs::{File, OpenOptions};
-use csv::{Reader};
+use csv::Reader;
 use std::collections::{HashSet, HashMap};
 use std::time::Instant;
 use rayon::prelude::*;
 use regex::Regex;
 use std::io::{BufReader, Write};
-use std::sync::Mutex;
+use ocl::{Buffer, Kernel, Platform, Program, Queue, Device, Context};
 
-/* ==============================================
-    most_frequent_strings
-    ----------------------------------------------
-    Entrada: um vetor de strings e um valor máximo;
-    Saída: um vetor de tuplas (palavra, frequência).
-    ==============================================  */
-fn most_frequent_strings(strings: Vec<&str>, limit: usize) -> Vec<(&str, usize)> {
-    let mut frequency_map: HashMap<&str, usize> = HashMap::new();
-    for s in strings.iter() {
-        *frequency_map.entry(s).or_insert(0) += 1;
+fn word_frequency_gpu(words: Vec<String>) -> HashMap<String, usize> {
+    let platform = Platform::default();
+    println!("Plataforma: {:?}", platform.name()); // Imprimir a plataforma
+    let device = Device::first(platform).unwrap();
+    println!("Dispositivo: {:?}", device.name()); // Imprimir o nome da GPU
+
+    let context = Context::builder()
+        .platform(platform)
+        .devices(device)
+        .build()
+        .unwrap();
+    let queue = Queue::new(&context, device, None).unwrap();
+
+    // Criando um mapa de palavras para índices
+    let mut word_to_index: HashMap<String, usize> = HashMap::new();
+    let mut index_to_word: Vec<String> = Vec::new();
+
+    for word in &words {
+        if !word_to_index.contains_key(word) {
+            let idx = index_to_word.len();
+            word_to_index.insert(word.clone(), idx);
+            index_to_word.push(word.clone());
+        }
     }
-    let mut word_counts: Vec<(&str, usize)> = frequency_map.into_iter().collect();
-    word_counts.sort_by(|a, b| b.1.cmp(&a.1));
-    word_counts.into_iter().take(limit).collect()
+
+    let indices: Vec<i32> = words
+        .iter()
+        .map(|w| *word_to_index.get(w).unwrap() as i32)
+        .collect();
+
+    let buffer = Buffer::<i32>::builder()
+        .queue(queue.clone())
+        .len(indices.len())
+        .copy_host_slice(&indices)
+        .build()
+        .unwrap();
+
+    let mut counts = vec![0; word_to_index.len()];
+    let buffer_out = Buffer::<i32>::builder()
+        .queue(queue.clone())
+        .len(counts.len())
+        .copy_host_slice(&counts)
+        .build()
+        .unwrap();
+
+    let program = Program::builder()
+        .src("
+            __kernel void count_words(__global int* input, __global int* output, int n) {
+                int id = get_global_id(0);
+                if (id < n) {
+                    atomic_add(&output[input[id]], 1);
+                }
+            }
+        ")
+        .devices(device)
+        .build(&context)
+        .unwrap();
+
+    let kernel = Kernel::builder()
+        .program(&program)
+        .name("count_words")
+        .queue(queue.clone())
+        .global_work_size(indices.len())
+        .arg(&buffer)
+        .arg(&buffer_out)
+        .arg(&(indices.len() as i32))
+        .build()
+        .unwrap();
+
+    // Executar o kernel na GPU
+    unsafe { kernel.enq().unwrap(); }
+    println!("Kernel executado com sucesso.");
+
+    buffer_out.read(&mut counts).enq().unwrap();
+
+    let mut freq_map = HashMap::new();
+    for (i, &count) in counts.iter().enumerate() {
+        if count > 0 {
+            freq_map.insert(index_to_word[i].clone(), count as usize);
+        }
+    }
+
+    freq_map
 }
 
-/* ==============================================
-    append_txt
-    ----------------------------------------------
-    Entrada: caminho do TXT da categoria, string
-    com as palavras a serem escritas nele;
-    Saída: Os dados são escritos ou retorna erro.
-    ==============================================  */
 fn append_txt(file_path: &str, data: &str) -> Result<(), Box<dyn Error>> {
     let mut file = OpenOptions::new()
         .create(true)
@@ -71,28 +133,26 @@ fn split_csv(record: csv::StringRecord, text: String) -> Result<(), Box<dyn Erro
     ==============================================  */
 fn word_frequency_from_txt(file_path: &str) -> HashMap<String, usize> {
     let file = File::open(file_path).expect("Failed to open file");
-    let reader = BufReader::new(file);
-    let word_count = Mutex::new(HashMap::new());
+    let mut rdr = Reader::from_reader(BufReader::new(file));
+    
     let re = Regex::new(r"\b\w+\b").unwrap();
-
-    use std::io::BufRead;
-    reader.lines().par_bridge().for_each(|line_result| {
-        if let Ok(line) = line_result {
-            let words = re.find_iter(&line).map(|m| m.as_str().to_lowercase());
-
-            let mut local_count = HashMap::new();
-            for word in words {
-                *local_count.entry(word).or_insert(0) += 1;
+    
+    let words: Vec<String> = rdr.records()
+        .par_bridge()
+        .filter_map(|result| {
+            if let Ok(record) = result {
+                let text = record.iter().collect::<Vec<&str>>().join(" ");
+                Some(re.find_iter(&text)
+                    .map(|m| m.as_str().to_lowercase())
+                    .collect::<Vec<String>>())
+            } else {
+                None
             }
-
-            let mut global_count = word_count.lock().unwrap();
-            for (word, count) in local_count {
-                *global_count.entry(word).or_insert(0) += count;
-            }
-        }
-    });
-
-    word_count.into_inner().unwrap()
+        })
+        .flatten()
+        .collect();
+    
+    word_frequency_gpu(words)
 }
 
 /* ==============================================
@@ -161,13 +221,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!();
     }
     
-    // files.par_iter().for_each(|file| {
-    //     if let Err(err) = std::fs::remove_file(file) {
-    //         eprintln!("Erro ao excluir {}: {}", file, err);
-    //     } else {
-    //         println!("Arquivo {} excluído.", file);
-    //     }
-    // });
+    files.par_iter().for_each(|file| {
+        if let Err(err) = std::fs::remove_file(file) {
+            eprintln!("Erro ao excluir {}: {}", file, err);
+        } else {
+            println!("Arquivo {} excluído.", file);
+        }
+    });
 
     println!("Tempo de execução: {:?}", start.elapsed());
 
