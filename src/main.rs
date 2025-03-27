@@ -8,6 +8,12 @@ use regex::Regex;
 use std::io::BufReader;
 use std::sync::Mutex;
 
+/*  ==============================================  
+    most_frequent_strings
+    ----------------------------------------------
+    Entrada: um vetor de strings e um valor máximo;
+    Saída: um vetor de tuplas (palavra, frequência).
+    ==============================================  */
 fn most_frequent_strings(strings: Vec<&str>, limit: usize) -> Vec<(&str, usize)> {
     let mut frequency_map: HashMap<&str, usize> = HashMap::new();
     for s in strings.iter() {
@@ -18,6 +24,13 @@ fn most_frequent_strings(strings: Vec<&str>, limit: usize) -> Vec<(&str, usize)>
     word_counts.into_iter().take(limit).collect()
 }
 
+/*  ==============================================  
+    append_csv
+    ----------------------------------------------
+    Entrada: caminho do CSV da categoria, string
+    com as palavras a serem escritas nele;
+    Saída: Os dados são escritos ou retorna erro.
+    ==============================================  */
 fn append_csv(file_path: &str, data: &str) -> Result<(), Box<dyn Error>> {
     let file = OpenOptions::new()
         .create(true)
@@ -29,6 +42,13 @@ fn append_csv(file_path: &str, data: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/*  ==============================================  
+    split_csv
+    ----------------------------------------------
+    Entrada: linha do CSV original, texto da linha;
+    Saída: os dados são distribuídos nos CSVs de
+    cada categoria ou erro.
+    ==============================================  */
 fn split_csv(record: csv::StringRecord, text: String) -> Result<(), Box<dyn Error>> {
     let files = [
         "csv/toxic.csv", "csv/severe_toxic.csv", "csv/obscene.csv", 
@@ -45,6 +65,12 @@ fn split_csv(record: csv::StringRecord, text: String) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
+/*  ==============================================  
+    word_frequency_from_csv
+    ----------------------------------------------
+    Entrada: caminho do csv de uma categoria;
+    Saída: HashMap com "palavra: frequência".
+    ==============================================  */
 fn word_frequency_from_csv(file_path: &str) -> HashMap<String, usize> {
     let file = File::open(file_path).expect("Failed to open file");
     let mut rdr = Reader::from_reader(BufReader::new(file));
@@ -74,6 +100,13 @@ fn word_frequency_from_csv(file_path: &str) -> HashMap<String, usize> {
     word_count.into_inner().unwrap()
 }
 
+/*  ==============================================  
+    main
+    ----------------------------------------------
+    Lê CSV original e filtra de acordo com as 
+    técnicas básicas de PLN. Mostra o tempo total
+    de execução.
+    ==============================================  */
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     println!("Iniciando a execução do programa...");
