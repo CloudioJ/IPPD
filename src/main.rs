@@ -8,6 +8,12 @@ use regex::Regex;
 use std::io::{BufReader, Write};
 use ocl::{Buffer, Kernel, Platform, Program, Queue, Device, Context};
 
+/* ==============================================
+    word_frequency_gpu
+    ----------------------------------------------
+    Entrada: um vetor de strings;
+    Saída: um HashMap com "palavra: frequência".
+    ==============================================  */
 fn word_frequency_gpu(words: Vec<String>) -> HashMap<String, usize> {
     let platform = Platform::default();
     println!("Plataforma: {:?}", platform.name()); // Imprimir a plataforma
@@ -93,6 +99,13 @@ fn word_frequency_gpu(words: Vec<String>) -> HashMap<String, usize> {
     freq_map
 }
 
+/* ==============================================
+    append_txt
+    ----------------------------------------------
+    Entrada: caminho do arquivo de uma categoria e
+    uma string;
+    Saída: escreve a string ao final do txt ou erro.
+    ==============================================  */
 fn append_txt(file_path: &str, data: &str) -> Result<(), Box<dyn Error>> {
     let mut file = OpenOptions::new()
         .create(true)
