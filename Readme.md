@@ -39,9 +39,6 @@ O dataset utilizado para dividir as mensagens de acordo com as categorias "toxic
     ```bash
     export LIB="/c/Program Files (x86)/AMD APP SDK/3.0/lib/x86_64:$LIB"
     ``` 
-    ```bash
-    cargo build
-    ```
 
 3. As dependências ficam listadas em `Cargo.toml`.
 
