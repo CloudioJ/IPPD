@@ -1,1 +1,0 @@
-{"rustc":8464669096438539317,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[8657607195208836715,"build_script_build",false,9540953137679529361]],"local":[{"RerunIfChanged":{"output":"debug\\build\\stop-words-e7d10ae304550a08\\output","paths":["build.rs","src/nltk"]}}],"rustflags":[],"config":0,"compile_kind":0}
