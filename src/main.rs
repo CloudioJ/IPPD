@@ -178,6 +178,7 @@ fn word_frequency_from_txt(file_path: &str) -> HashMap<String, usize> {
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     println!("Iniciando a execução do programa...");
+
     let filename = "csv/dataset.csv";
     let files = [
         "txt/toxic.txt", "txt/severe_toxic.txt", "txt/obscene.txt",

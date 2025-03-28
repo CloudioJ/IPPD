@@ -17,33 +17,44 @@ O dataset utilizado para dividir as mensagens de acordo com as categorias "toxic
 
 ## Dependências
 
-    * Tenha certeza de ter rustc e cargo instalado. É possível verificar desta forma:
+1. Tenha certeza de ter rustc (compilador Rust) e cargo (gerenciador de pacotes) instalado. É possível verificar desta forma:
 
-        ```bash
-        rustc --version
-        cargo --version
-        ```
+    ```bash
+    rustc --version
+    cargo --version
+    ```
     
-    Se não tiver:
+    * Se não tiver:
 
-        ```bash
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-        ```
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
 
-        ```bash
-        sudo apt install rustc
-        ```
+    ```bash
+    sudo apt install rustc
+    ```
+
+2. É necessário instalar o OpenCL. Este trabaho foi feito para ser exeutado com GPUs AMD, foi utilizado o [AMD-APP-SDKInstaller](https://stackoverflow.com/questions/53070673/download-opencl-amd-app-sdk-3-0-for-windows-and-linux).
+
+    ```bash
+    export LIB="/c/Program Files (x86)/AMD APP SDK/3.0/lib/x86_64:$LIB"
+    ``` 
+    ```bash
+    cargo build
+    ```
+
+3. As dependências ficam listadas em `Cargo.toml`.
 
 ## Como Executar
 
 1.  **Clone o repositório:**
 
-    * Se você tiver o Git instalado, clone o repositório para o seu computador usando o seguinte comando:
+* Se você tiver o Git instalado, clone o repositório para o seu computador usando o seguinte comando:
 
-        ```bash
-        git clone https://github.com/CloudioJ/IPPD
-        cd <diretório_do_repositório>
-        ```
+    ```bash
+    git clone https://github.com/CloudioJ/IPPD
+    cd <diretório_do_repositório>
+    ```
 
 2.  **Execute o programa:**
 
@@ -54,11 +65,11 @@ O dataset utilizado para dividir as mensagens de acordo com as categorias "toxic
 
 ## Estrutura do Projeto
 
-    O projeto está organizado nos seguintes diretórios:
+O projeto está organizado nos seguintes diretórios:
 
-    -   `csv/`: Contém o dataset original;
-    -   `src/`: Contém o arquivo main.rs;
-    -   `txt/`: Contémos os arquivos de texto por categoria - crie manualmente o diretório.
+-   `csv/`: Contém o dataset original;
+-   `src/`: Contém o arquivo main.rs;
+-   `txt/`: Contémos os arquivos de texto por categoria - crie manualmente o diretório.
     
 ## Autores
 
